@@ -1,5 +1,4 @@
 🚀 Next.js Stripe Supabase Starter Kit ⚡
-
 Welcome to the `Next.js SaaS Starter with Stripe` – your ultimate boilerplate for building modern, scalable SaaS applications! This powerful starter kit combines the best of Next.js, Stripe, Supabase, Typescript and Tailwind CSS to help you launch your SaaS project faster than ever! 🌟
 
 ## 🎯 Overview
@@ -205,3 +204,9 @@ Feel free to reach out if you have any questions or need help:
 - **Linkedin:** [@MustafaCagri](https://www.linkedin.com/in/mustafacagri/)
 
 Made with ❤️ in 📍 Istanbul, using React.js 18 ⚛️ Next.js 14 🌐 Stripe 💳 TailwindCSS 🎨 TypeScript 🔧 React Query / Tanstack 🔄 and Lodash 🛠️!
+
+## Testing & CI
+
+Run `yarn test` to execute the Vitest suite locally.
+
+[![CI](https://github.com/<USER>/<REPO>/actions/workflows/ci.yml/badge.svg)](https://github.com/<USER>/<REPO>/actions/workflows/ci.yml)
