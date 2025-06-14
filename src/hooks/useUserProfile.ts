@@ -10,6 +10,7 @@ export const useUserProfile = () => {
   const [profile, setProfile] = useState<Profile | null>(null)
   const [loading, setLoading] = useState(true)
 
+  // Load profile when supabase service instance changes
   useEffect(() => {
     const loadProfile = async () => {
       setLoading(true)
@@ -20,7 +21,7 @@ export const useUserProfile = () => {
     }
 
     loadProfile()
-  }, [])
+  }, [supabaseService])
 
   return { profile, loading }
 }
