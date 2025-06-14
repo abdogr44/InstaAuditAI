@@ -81,12 +81,10 @@ cd next-stripe-supabase-tailwind
 
 ### 📦 Install dependencies
 
-```
-npm install
-# or
+```bash
+corepack enable
+corepack prepare yarn@4.5.1 --activate
 yarn install
-# or
-pnpm install
 ```
 
 ### 🔑 Set up environment variables
