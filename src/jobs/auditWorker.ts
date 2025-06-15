@@ -1,7 +1,7 @@
 /**
  * Processes audit jobs from the `audit-queue` in Upstash Redis and saves
  * results back to Supabase. Run locally with `npx tsx src/jobs/auditWorker.ts`
- * or in production via `yarn worker` after building the project.
+ * It can be invoked with `tsx` directly, e.g. `yarn worker`.
  */
 import { Redis } from '@upstash/redis'
 import axios from 'axios'
@@ -91,4 +91,15 @@ export async function processNextJob() {
       result: { engagementRate, recommendations: ai.data },
     })
   return true
+}
+
+// When executed directly, continually process jobs on an interval
+if (require.main === module) {
+  // Run immediately then every 5 seconds
+  const run = () =>
+    processNextJob().catch(err =>
+      console.error('Error processing job:', err)
+    )
+  run()
+  setInterval(run, 5000)
 }

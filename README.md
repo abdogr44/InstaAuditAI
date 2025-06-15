@@ -269,7 +269,7 @@ npx tsx src/jobs/auditWorker.ts
 
 ### Production
 
-After building the project you can invoke the compiled worker script:
+Invoke the worker script directly:
 
 ```bash
 yarn worker
