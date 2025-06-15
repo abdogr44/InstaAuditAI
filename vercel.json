@@ -2,7 +2,7 @@
   "version": 2,
   "env": {
     "NEXT_PUBLIC_SUPABASE_URL": "https://xbbpzyzazxhczrcwqoha.supabase.co",
-    "NEXT_PUBLIC_SUPABASE_ANON_KEY": "@next_public_supabase_anon_key",
+    "NEXT_PUBLIC_SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhiYnB6eXphenhoY3pyY3dxb2hhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDk5MzM2MDIsImV4cCI6MjA2NTUwOTYwMn0.4F7QRrfoWJZ0t807PM-tNicN--wbIaFGGl797LQIyQE",
     "SUPABASE_SERVICE_ROLE_KEY": "@supabase_service_role_key",
     "NEXT_SITE_URL": "@next_site_url",
     "STRIPE_SECRET_KEY": "@stripe_secret_key",
