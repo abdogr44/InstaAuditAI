@@ -1,13 +1,13 @@
 import { createClient as CreateServerClient } from '@/utils/supabase/server'
 import { stripe } from '@/lib/stripe'
 import { NextResponse } from 'next/server'
+import { Redis } from '@upstash/redis'
 
 export async function POST(request: Request) {
   const rawBody = await request.text()
   const signature = request.headers.get('stripe-signature')
   const supabaseServer = CreateServerClient({ isServiceWorker: true })
 
-  let plan
   let stripeEvent
 
   if (!rawBody) return NextResponse.json({ error: 'Invalid request body' })
@@ -22,50 +22,17 @@ export async function POST(request: Request) {
     })
   }
 
-  const updateProfilePlan = async (customerId: string, slug: string | null) => {
-    const last_plan_update = new Date()
-
-    try {
-      if (slug) {
-        const [baseSlug] = slug.split('_')
-
-        const { data: planData, error: planError } = await supabaseServer
-          .from('pricing_plans')
-          .select('id')
-          .eq('slug', baseSlug)
-          .single()
-
-        if (planError || !planData) {
-          console.error('Error fetching plan ID:', planError)
-          return
-        }
-
-        await supabaseServer
-          .from('profiles')
-          .update({ is_subscribed: true, last_plan_update, plan_id: planData.id })
-          .eq('stripe_customer_id', customerId)
-      } else {
-        await supabaseServer
-          .from('profiles')
-          .update({ is_subscribed: false, last_plan_update, plan_id: null })
-          .eq('stripe_customer_id', customerId)
-      }
-    } catch (error) {
-      console.log('Error updating profile plan:', error)
-    }
-  }
+  const redis = new Redis({
+    url: process.env.UPSTASH_REDIS_REST_URL!,
+    token: process.env.UPSTASH_REDIS_REST_TOKEN!,
+  })
 
   switch (stripeEvent.type) {
-    case 'customer.subscription.deleted':
-      await updateProfilePlan(stripeEvent?.data?.object?.customer as string, null)
+    case 'checkout.session.completed':
+      if (stripeEvent.data.object.metadata?.audit_request_id) {
+        await redis.rpush('audit-queue', JSON.stringify({ requestId: stripeEvent.data.object.metadata.audit_request_id }))
+      }
       break
-
-    case 'customer.subscription.created':
-    case 'customer.subscription.updated':
-      plan = stripeEvent.data.object.items.data[0].price.lookup_key
-      await updateProfilePlan(stripeEvent?.data?.object?.customer as string, plan)
-      break
-
     default:
       console.log(`Unhandled event type ${stripeEvent.type}.`)
   }
