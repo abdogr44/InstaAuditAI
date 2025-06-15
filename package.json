@@ -8,7 +8,7 @@
     "start": "next start",
     "lint": "next lint",
     "test": "vitest run",
-    "worker": "node dist/jobs/auditWorker.js"
+    "worker": "tsx src/jobs/auditWorker.ts"
   },
   "dependencies": {
     "@heroicons/react": "^2.1.5",
