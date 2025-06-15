@@ -1,95 +1,58 @@
 import { createClient as CreateServerClient } from '@/utils/supabase/server'
-import { isEmpty } from 'lodash'
 import { NextResponse } from 'next/server'
 import { stripe } from '@/lib/stripe'
 
 export async function POST(request: Request) {
-  const supabaseServer = CreateServerClient({})
-  const body = await request.json()
-  const { lookup_key } = body
+  const supabase = CreateServerClient({})
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  }
 
-  let isSuccess = true
+  const { handle, email, niche, goal } = await request.json()
 
-  const { data } = await supabaseServer
+  const { data: profile } = await supabase
     .from('profiles')
-    .select('email, is_subscribed, name, stripe_customer_id')
+    .select('stripe_customer_id, name')
+    .eq('id', user.id)
     .single()
 
-  if (!data) {
-    throw new Error('Profile data not found')
-  }
+  let customerId = profile?.stripe_customer_id
+  const name = profile?.name || undefined
 
-  const { email, is_subscribed, name } = data
-  let { stripe_customer_id } = data
-
-  // Create Stripe customer if it doesn't exist
-  if (!stripe_customer_id && email) {
+  if (!customerId) {
     const customer = await stripe.customers.create({ email, name })
-
-    if (!customer?.id) {
-      throw new Error('Failed to create customer')
-    }
-
-    stripe_customer_id = customer.id
-    await supabaseServer.from('profiles').update({ stripe_customer_id }).eq('email', email)
+    customerId = customer.id
+    await supabase
+      .from('profiles')
+      .update({ stripe_customer_id: customerId })
+      .eq('id', user.id)
   }
 
-  // Lookup the plan price in Stripe
-  if (email && lookup_key) {
-    const { data: prices } = await stripe.prices.list({
-      expand: ['data.product'],
-      lookup_keys: [lookup_key],
-    })
+  const { data: audit } = await supabase
+    .from('audit_requests')
+    .insert({ user_id: user.id, handle, email, niche, goal })
+    .select()
+    .single()
 
-    if (isEmpty(prices)) isSuccess = false
+  const session = await stripe.checkout.sessions.create({
+    customer: customerId,
+    mode: 'payment',
+    payment_method_types: ['card'],
+    line_items: [
+      {
+        price_data: {
+          currency: 'usd',
+          unit_amount: 900,
+          product_data: { name: 'Instagram Audit' },
+        },
+        quantity: 1,
+      },
+    ],
+    success_url: `${process.env.NEXT_SITE_URL}dashboard`,
+    cancel_url: `${process.env.NEXT_SITE_URL}`,
+    metadata: { audit_request_id: audit.id },
+  })
 
-    const planPrice = prices?.[0]
-    if (!planPrice) isSuccess = false
-
-    if (isSuccess) {
-      // Check if user is already subscribed
-      if (is_subscribed) {
-        // Get the existing subscription
-        const subscriptions = await stripe.subscriptions.list({
-          customer: stripe_customer_id,
-          status: 'active',
-          limit: 1,
-        })
-
-        const activeSubscription = subscriptions.data?.[0]
-
-        if (activeSubscription) {
-          // Update the subscription with the new price ID
-          await stripe.subscriptions.update(activeSubscription.id, {
-            items: [
-              {
-                id: activeSubscription.items.data[0].id,
-                price: planPrice.id,
-              },
-            ],
-          })
-          return NextResponse.json({ isSuccess, message: 'Subscription updated' })
-        }
-      }
-
-      // Create a new checkout session if not subscribed
-      const session = await stripe.checkout.sessions.create({
-        customer: stripe_customer_id,
-        billing_address_collection: 'auto',
-        line_items: [
-          {
-            price: planPrice.id,
-            quantity: 1,
-          },
-        ],
-        mode: 'subscription',
-        success_url: `${process.env.NEXT_SITE_URL}pricing`,
-        cancel_url: `${process.env.NEXT_SITE_URL}`,
-      })
-
-      return NextResponse.json({ isSuccess, session_id: session.id, plan_id: planPrice.id, url: session?.url })
-    } else {
-      return NextResponse.json({ isSuccess, message: 'Plan not found' })
-    }
-  }
+  return NextResponse.json({ url: session.url })
 }

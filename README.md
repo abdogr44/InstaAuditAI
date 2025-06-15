@@ -103,6 +103,10 @@ NEXT_SITE_URL=http://localhost:3216 or whatever you are using
 STRIPE_WEBHOOK_SECRET=whsec_xxxxxxx
 STRIPE_SECRET_KEY=sk_test_xxxxxx
 NEXT_PUBLIC_STRIPE_PUBLISAHEBLE_KEY=pk_test_xxxx
+UPSTASH_REDIS_REST_URL=
+UPSTASH_REDIS_REST_TOKEN=
+OPENROUTER_API_KEY=
+APIFY_TOKEN=
 ```
 
 ### 🏃‍♂️ Run the development server
@@ -160,6 +164,36 @@ CREATE TABLE pricing_features (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     plan_id UUID REFERENCES pricing_plans(id) ON DELETE CASCADE  -- Foreign key to pricing_plans
 );
+
+-- Create audit_requests table
+CREATE TABLE audit_requests (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID REFERENCES profiles(id) ON DELETE CASCADE,
+    handle TEXT,
+    email TEXT,
+    niche TEXT,
+    goal TEXT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Create audit_results table
+CREATE TABLE audit_results (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    request_id UUID REFERENCES audit_requests(id) ON DELETE CASCADE,
+    user_id UUID REFERENCES profiles(id) ON DELETE CASCADE,
+    result JSONB,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Row level security policies
+ALTER TABLE audit_requests ENABLE ROW LEVEL SECURITY;
+ALTER TABLE audit_results ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Allow users to manage their requests" ON audit_requests
+  FOR ALL USING (auth.uid() = user_id) WITH CHECK (auth.uid() = user_id);
+
+CREATE POLICY "Allow users to read their results" ON audit_results
+  FOR SELECT USING (auth.uid() = user_id);
 ```
 
 ## Database Triggers and Functions
@@ -208,3 +242,9 @@ Made with ❤️ in 📍 Istanbul, using React.js 18 ⚛️ Next.js 14 🌐 Stri
 Run `yarn test` to execute the Vitest suite locally.
 
 [![CI](https://github.com/<USER>/<REPO>/actions/workflows/ci.yml/badge.svg)](https://github.com/<USER>/<REPO>/actions/workflows/ci.yml)
+
+## Deploying on Vercel
+
+This project is ready for Vercel. Copy `.env.example` to your Vercel environment
+variables and import `vercel.json` for configuration. Ensure the Stripe, Supabase,
+Upstash and API keys are set in the dashboard before deploying.
