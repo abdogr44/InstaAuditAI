@@ -9,7 +9,7 @@ export function HeroForm() {
   const [goal, setGoal] = useState('')
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    await fetch('/api/create-checkout-session', {
+    await fetch('/api/stripe/create-checkout-session', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ handle, email, niche, goal }),

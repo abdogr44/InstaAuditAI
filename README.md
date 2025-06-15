@@ -1,5 +1,5 @@
-🚀 Next.js Stripe Supabase Starter Kit ⚡
-Welcome to the `Next.js SaaS Starter with Stripe` – your ultimate boilerplate for building modern, scalable SaaS applications! This powerful starter kit combines the best of Next.js, Stripe, Supabase, Typescript and Tailwind CSS to help you launch your SaaS project faster than ever! 🌟
+# 🚀 InstaAudit AI
+InstaAudit AI lets you purchase quick Instagram audits powered by Next.js, Stripe and Supabase. Submit your handle and goals, pay once and get actionable recommendations from AI.
 
 ## 🎯 Overview
 
@@ -102,7 +102,7 @@ SUPABASE_SERVICE_ROLE_KEY=
 NEXT_SITE_URL=http://localhost:3216 or whatever you are using
 STRIPE_WEBHOOK_SECRET=whsec_xxxxxxx
 STRIPE_SECRET_KEY=sk_test_xxxxxx
-NEXT_PUBLIC_STRIPE_PUBLISAHEBLE_KEY=pk_test_xxxx
+NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_test_xxxx
 UPSTASH_REDIS_REST_URL=
 UPSTASH_REDIS_REST_TOKEN=
 OPENROUTER_API_KEY=
