@@ -14,6 +14,6 @@ describe('HeroForm', () => {
     fireEvent.change(screen.getByLabelText(/Niche/i), { target: { value: 'Tech' } })
     fireEvent.change(screen.getByLabelText(/Goal/i), { target: { value: 'Growth' } })
     fireEvent.click(screen.getByRole('button', { name: /submit/i }))
-    expect(fetchMock).toHaveBeenCalledWith('/api/create-checkout-session', expect.objectContaining({ method: 'POST' }))
+    expect(fetchMock).toHaveBeenCalledWith('/api/stripe/create-checkout-session', expect.objectContaining({ method: 'POST' }))
   })
 })
