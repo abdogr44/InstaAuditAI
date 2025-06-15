@@ -2,6 +2,8 @@ import { Redis } from '@upstash/redis'
 import axios from 'axios'
 import { createClient } from '@/utils/supabase/server'
 
+type Post = { likes: number; comments: number }
+
 const redis = new Redis({
   url: process.env.UPSTASH_REDIS_REST_URL!,
   token: process.env.UPSTASH_REDIS_REST_TOKEN!,
@@ -25,22 +27,25 @@ export async function processNextJob() {
     })
     .then(r => r.data)
 
-  const posts =
+  const posts: Post[] =
     igData?.recentPosts ||
-    igData?.graphql?.user?.edge_owner_to_timeline_media?.edges?.map((e: any) => ({
-      likes: e.node.edge_liked_by.count,
-      comments: e.node.edge_media_to_comment.count,
-    })) ||
+    igData?.graphql?.user?.edge_owner_to_timeline_media?.edges?.map(
+      (e: { node: { edge_liked_by: { count: number }; edge_media_to_comment: { count: number } } }) => ({
+        likes: e.node.edge_liked_by.count,
+        comments: e.node.edge_media_to_comment.count,
+      })
+    ) ||
     []
   const followers =
     igData?.followers || igData?.graphql?.user?.edge_followed_by?.count || 0
-  const engagementRate = posts.length && followers
-    ?
-        (posts.reduce((sum: number, p: any) => sum + p.likes + p.comments, 0) /
-          posts.length /
-          followers) *
-        100
-    : 0
+  const engagementRate =
+    posts.length && followers
+      ?
+          (posts.reduce((sum: number, p: Post) => sum + p.likes + p.comments, 0) /
+            posts.length /
+            followers) *
+          100
+      : 0
 
   let ai
   try {
@@ -57,7 +62,7 @@ export async function processNextJob() {
       },
       { headers: { Authorization: `Bearer ${process.env.OPENROUTER_API_KEY}` } }
     )
-  } catch (err) {
+  } catch {
     ai = await axios.post(
       'https://openrouter.ai/api/v1/chat/completions',
       {
