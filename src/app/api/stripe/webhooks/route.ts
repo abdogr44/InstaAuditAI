@@ -1,4 +1,3 @@
-import { createClient as CreateServerClient } from '@/utils/supabase/server'
 import { stripe } from '@/lib/stripe'
 import { NextResponse } from 'next/server'
 import { Redis } from '@upstash/redis'
@@ -6,7 +5,6 @@ import { Redis } from '@upstash/redis'
 export async function POST(request: Request) {
   const rawBody = await request.text()
   const signature = request.headers.get('stripe-signature')
-  const supabaseServer = CreateServerClient({ isServiceWorker: true })
 
   let stripeEvent
 

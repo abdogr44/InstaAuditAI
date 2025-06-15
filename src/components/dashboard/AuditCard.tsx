@@ -1,5 +1,5 @@
 interface Props {
-  result: { id: string; result: any; created_at?: string }
+  result: { id: string; result: Record<string, unknown>; created_at?: string }
 }
 
 export function AuditCard({ result }: Props) {

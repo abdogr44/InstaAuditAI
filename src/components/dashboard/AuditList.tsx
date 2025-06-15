@@ -1,7 +1,7 @@
 import { AuditCard } from './AuditCard'
 
 interface Props {
-  results: { id: string; result: any; created_at?: string }[]
+  results: { id: string; result: Record<string, unknown>; created_at?: string }[]
 }
 
 export function AuditList({ results }: Props) {
