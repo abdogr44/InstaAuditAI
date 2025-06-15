@@ -1,42 +1,9 @@
-import type { PricingPlan, Profile } from '@/interfaces'
+import type { Profile } from '@/interfaces'
 
 import { handlerApiError } from '@/utils/errors/handlerApi'
 import { supabase } from '@/lib/supabase'
 
 export const useSupabaseService = () => {
-  const fetchPricingPlans = async ({
-    limit,
-    is_featured,
-  }: {
-    limit?: number
-    is_featured?: boolean
-  }): Promise<PricingPlan[]> => {
-    try {
-      limit ??= 1000
-      is_featured ??= false
-
-      const selectQuery =
-        'id, name, slug, price_monthly, price_yearly, description, cta, most_popular, is_featured, pricing_features(id,name)'
-
-      // Build the query
-      let query = supabase.from('pricing_plans').select(selectQuery)
-
-      // Apply filter for isFeatured only if it's defined
-      if (typeof is_featured === 'boolean') {
-        query = query.eq('is_featured', is_featured)
-      }
-
-      const { data, error } = await query.order('price_monthly', { ascending: true }).limit(limit)
-
-      if (error) throw error
-
-      return data
-    } catch (error: unknown) {
-      // Specify error as unknown here
-      handlerApiError(error)
-      return []
-    }
-  }
 
   const fetchUserProfile = async (): Promise<Profile | null> => {
     const {
@@ -108,7 +75,6 @@ export const useSupabaseService = () => {
   }
 
   return {
-    fetchPricingPlans,
     fetchUserProfile,
 
     loginWithGithub,
