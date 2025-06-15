@@ -1,9 +1,9 @@
 # 🚀 InstaAudit AI
-InstaAudit AI lets you purchase quick Instagram audits powered by Next.js, Stripe and Supabase. Submit your handle and goals, pay once and get actionable recommendations from AI.
+InstaAudit AI delivers a quick Instagram profile audit for a flat **$9**. Authenticate with Supabase, submit your handle and goals, pay once with Stripe and receive actionable AI-powered recommendations.
 
 ## 🎯 Overview
 
-A powerful SaaS starter-kit built with Next.js, Stripe, Supabase, Typescript, and Tailwind CSS. Perfect for launching your next SaaS project!
+This repo demonstrates a minimal Next.js app with one‑time payments. Users create an audit request, complete checkout and a background worker generates the result using OpenRouter.
 
 ### 🎥 Demo Video
 
@@ -15,60 +15,16 @@ https://next-stripe-supabase-tailwind-typescript.vercel.app/
 
 ## ✨ Key Features
 
-### 💳 Complete Stripe Integration
-
-- Subscription management
-- Usage-based billing
-- Multiple pricing tiers
-- Secure payment processing
-
-### 🔐 Authentication & Authorization
-
-- Supabase Auth integration
-- Social login providers
-- Role-based access control
-
-### 🎨 Modern UI/UX
-
-- Custom components
-- Loading states & animations & skeletons
-- Responsive design with Tailwind CSS
-- Dark/Light mode support
-
-### ⚡ Performance Optimized
-
-- Server-side rendering
-- Incremental static regeneration
-- Optimized images
-- Fast page loads
+- Supabase authentication
+- One-time $9 payment with Stripe
+- Redis queue for audit jobs
+- Worker processes audits via OpenRouter
 
 ## 🛠️ Tech Stack
 
-### 🔍 Code Quality
-
-[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=mustafacagri_next-stripe-supabase-tailwind-typescript&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=mustafacagri_next-stripe-supabase-tailwind)
-[![Maintainability Rating](https://sonarcloud.io/api/project_badges/measure?project=mustafacagri_next-stripe-supabase-tailwind-typescript&metric=sqale_rating)](https://sonarcloud.io/summary/new_code?id=mustafacagri_next-stripe-supabase-tailwind)
-[![Reliability Rating](https://sonarcloud.io/api/project_badges/measure?project=mustafacagri_next-stripe-supabase-tailwind-typescript&metric=reliability_rating)](https://sonarcloud.io/summary/new_code?id=mustafacagri_next-stripe-supabase-tailwind)
-[![Security Rating](https://sonarcloud.io/api/project_badges/measure?project=mustafacagri_next-stripe-supabase-tailwind-typescript&metric=security_rating)](https://sonarcloud.io/summary/new_code?id=mustafacagri_next-stripe-supabase-tailwind)
-
-This project is analyzed by:
-
-- 🔍 **SonarCloud** - Continuous code quality analysis
-- 🤖 **CodeRabbitAI** - AI-powered code reviews
-
-### 🎨 Frontend
-
-- ⚛️ Next.js 14
-- 🌐 React.js 18
-- 🎨 Tailwind CSS
-- 📝 TypeScript
-- 🔄 React Query / Tanstack
-
-### 🔐 Backend
-
-- 🗄️ Supabase
-- 💳 Stripe API
-- 🔒 Auth Providers
+- Next.js 14 & React 18
+- Tailwind CSS & TypeScript
+- Supabase & Stripe
 
 ## 🚀 Getting Started
 
@@ -99,10 +55,10 @@ Fill in your environment variables:
 NEXT_PUBLIC_SUPABASE_URL=
 NEXT_PUBLIC_SUPABASE_ANON_KEY=
 SUPABASE_SERVICE_ROLE_KEY=
-NEXT_SITE_URL=http://localhost:3216 or whatever you are using
-STRIPE_WEBHOOK_SECRET=whsec_xxxxxxx
-STRIPE_SECRET_KEY=sk_test_xxxxxx
-NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_test_xxxx
+NEXT_SITE_URL=
+STRIPE_WEBHOOK_SECRET=
+STRIPE_SECRET_KEY=
+NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=
 UPSTASH_REDIS_REST_URL=
 UPSTASH_REDIS_REST_TOKEN=
 OPENROUTER_API_KEY=
@@ -111,90 +67,24 @@ APIFY_TOKEN=
 
 ### 🏃‍♂️ Run the development server
 
-```
-npm run dev
-# or
+```bash
 yarn dev
-# or
-pnpm dev
 ```
 
-Visit http://localhost:3216 to see your app! 🎉
+### 🔧 Start the audit worker
+
+```bash
+yarn ts-node src/jobs/auditWorker.ts # or `yarn worker` after building
+```
 
 ## 🔄 Database Schema
 
-Our Supabase schema includes:
+The application relies on two main tables:
 
-```
--- Create profiles table
-CREATE TABLE profiles (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),  -- Automatically generate UUID
-    first_name TEXT,
-    last_name TEXT,
-    email TEXT UNIQUE,
-    picture TEXT,
-    name TEXT,
-    is_subscribed BOOLEAN DEFAULT FALSE,
-    plan_id UUID REFERENCES pricing_plans(id) ON DELETE SET NULL,  -- Foreign key to pricing_plans
-    stripe_customer_id TEXT,
-    last_plan_update TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
-);
+- **audit_requests** – stores the handle, niche and goal submitted by a user.
+- **audit_results** – created by the worker with the AI recommendations.
 
--- Create pricing_plans table
-CREATE TABLE pricing_plans (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),  -- Automatically generate UUID
-    name TEXT,
-    slug TEXT UNIQUE,
-    price_monthly INTEGER,
-    price_yearly INTEGER,
-    description TEXT,
-    cta TEXT,
-    most_popular BOOLEAN DEFAULT FALSE,
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-    is_active BOOLEAN DEFAULT TRUE,
-    is_featured BOOLEAN DEFAULT FALSE
-);
-
--- Create pricing_features table
-CREATE TABLE pricing_features (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),  -- Automatically generate UUID
-    name TEXT,
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-    plan_id UUID REFERENCES pricing_plans(id) ON DELETE CASCADE  -- Foreign key to pricing_plans
-);
-
--- Create audit_requests table
-CREATE TABLE audit_requests (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    user_id UUID REFERENCES profiles(id) ON DELETE CASCADE,
-    handle TEXT,
-    email TEXT,
-    niche TEXT,
-    goal TEXT,
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
-);
-
--- Create audit_results table
-CREATE TABLE audit_results (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    request_id UUID REFERENCES audit_requests(id) ON DELETE CASCADE,
-    user_id UUID REFERENCES profiles(id) ON DELETE CASCADE,
-    result JSONB,
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
-);
-
--- Row level security policies
-ALTER TABLE audit_requests ENABLE ROW LEVEL SECURITY;
-ALTER TABLE audit_results ENABLE ROW LEVEL SECURITY;
-
-CREATE POLICY "Allow users to manage their requests" ON audit_requests
-  FOR ALL USING (auth.uid() = user_id) WITH CHECK (auth.uid() = user_id);
-
-CREATE POLICY "Allow users to read their results" ON audit_results
-  FOR SELECT USING (auth.uid() = user_id);
-```
+When a checkout session completes, its `audit_request_id` is pushed to the `audit-queue` list in Upstash Redis. The worker reads from this list and stores the generated results in `audit_results`.
 
 ## Database Triggers and Functions
 
@@ -245,6 +135,4 @@ Run `yarn test` to execute the Vitest suite locally.
 
 ## Deploying on Vercel
 
-This project is ready for Vercel. Copy `.env.example` to your Vercel environment
-variables and import `vercel.json` for configuration. Ensure the Stripe, Supabase,
-Upstash and API keys are set in the dashboard before deploying.
+Create a new Vercel project and copy the variables from `.env.example` into the dashboard. Deploy with the provided `vercel.json` and run the worker on your preferred host using `node dist/jobs/auditWorker.js`.
