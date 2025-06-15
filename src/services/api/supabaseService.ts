@@ -21,9 +21,7 @@ export const useSupabaseService = () => {
 
     const { data, error } = await supabase
       .from('profiles')
-      .select(
-        'id, name, first_name, last_name, email, picture, is_subscribed, plan_id, stripe_customer_id, pricing_plans(id, name, slug, price_monthly, price_yearly)'
-      )
+      .select('id, name, first_name, last_name, email, picture')
       .eq('id', user.id)
       .single()
 

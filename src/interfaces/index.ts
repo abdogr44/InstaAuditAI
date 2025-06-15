@@ -8,8 +8,4 @@ export interface Profile {
   email: string
   picture?: string
   name?: string
-  is_subscribed: boolean
-  plan_id?: string
-  stripe_customer_id?: string
-  last_plan_update?: string
 }
