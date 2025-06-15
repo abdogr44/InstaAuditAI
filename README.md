@@ -248,3 +248,29 @@ Run `yarn test` to execute the Vitest suite locally.
 This project is ready for Vercel. Copy `.env.example` to your Vercel environment
 variables and import `vercel.json` for configuration. Ensure the Stripe, Supabase,
 Upstash and API keys are set in the dashboard before deploying.
+
+## Running the Audit Worker
+
+The audit worker consumes jobs from the Redis queue and writes the results back to Supabase.
+It relies on the following environment variables:
+
+- `UPSTASH_REDIS_REST_URL`
+- `UPSTASH_REDIS_REST_TOKEN`
+- `APIFY_TOKEN`
+- `OPENROUTER_API_KEY`
+
+### Local execution
+
+Run the worker directly with [`tsx`](https://github.com/esbuild/tsx):
+
+```bash
+npx tsx src/jobs/auditWorker.ts
+```
+
+### Production
+
+After building the project you can invoke the compiled worker script:
+
+```bash
+yarn worker
+```

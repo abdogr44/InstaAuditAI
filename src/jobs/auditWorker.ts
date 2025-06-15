@@ -1,3 +1,8 @@
+/**
+ * Processes audit jobs from the `audit-queue` in Upstash Redis and saves
+ * results back to Supabase. Run locally with `npx tsx src/jobs/auditWorker.ts`
+ * or in production via `yarn worker` after building the project.
+ */
 import { Redis } from '@upstash/redis'
 import axios from 'axios'
 import { createClient } from '@/utils/supabase/server'
